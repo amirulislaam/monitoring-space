@@ -1,0 +1,104 @@
+# prometheus-values.yaml
+
+rbac:
+  create: true
+
+grafana:
+  enabled: true
+  adminUser: admin
+  adminPassword: strongpassword123   # <-- change this
+  defaultDashboardsEnabled: true
+  sidecar:
+    dashboards:
+      enabled: true
+    datasources:
+      enabled: true
+  resources:
+    requests:
+      cpu: 200m
+      memory: 512Mi
+    limits:
+      cpu: 1
+      memory: 1Gi
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    hosts:
+      - grafana.example.com           # <-- replace with your domain
+    tls:
+      - secretName: grafana-tls
+        hosts:
+          - grafana.example.com
+
+prometheus:
+  prometheusSpec:
+    replicas: 1
+    retention: 15d
+    resources:
+      requests:
+        cpu: 500m
+        memory: 2Gi
+      limits:
+        cpu: 2
+        memory: 4Gi
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 20Gi
+    # Secure TLS config for Prometheus web UI
+    tlsConfig:
+      - caFile: /etc/prometheus/secrets/prometheus-tls/ca.crt
+        certFile: /etc/prometheus/secrets/prometheus-tls/tls.crt
+        keyFile: /etc/prometheus/secrets/prometheus-tls/tls.key
+    # External VM scrape targets
+    additionalScrapeConfigs:
+      - job_name: 'external-vms'
+        scheme: https
+        tls_config:
+          insecure_skip_verify: false
+        static_configs:
+          - targets:
+              - 'vm1.example.com:9100'
+              - 'vm2.example.com:9100'
+
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    hosts:
+      - prometheus.example.com
+    tls:
+      - secretName: prometheus-tls
+        hosts:
+          - prometheus.example.com
+
+alertmanager:
+  enabled: true
+  alertmanagerSpec:
+    replicas: 1
+    resources:
+      requests:
+        cpu: 200m
+        memory: 512Mi
+      limits:
+        cpu: 1
+        memory: 1Gi
+    tlsConfig:
+      - caFile: /etc/alertmanager/secrets/alertmanager-tls/ca.crt
+        certFile: /etc/alertmanager/secrets/alertmanager-tls/tls.crt
+        keyFile: /etc/alertmanager/secrets/alertmanager-tls/tls.key
+
+defaultRules:
+  create: true
+  rules:
+    alertmanager: true
+    etcd: true
+    general: true
+    k8s: true
+    kubeApiserver: true
+    kubePrometheusGeneral: true
+    kubePrometheusNodeAlerting: true
+    node: true
+    prometheus: true
