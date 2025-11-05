@@ -1,12 +1,10 @@
-# prometheus-values.yaml
-
 rbac:
   create: true
 
 grafana:
   enabled: true
   adminUser: admin
-  adminPassword: strongpassword123   # <-- change this
+  adminPassword: strongpassword123  # change this
   defaultDashboardsEnabled: true
   sidecar:
     dashboards:
@@ -24,11 +22,11 @@ grafana:
     enabled: true
     ingressClassName: nginx
     hosts:
-      - grafana.example.com           # <-- replace with your domain
+      - www.observabilitystack.run.place
     tls:
       - secretName: grafana-tls
         hosts:
-          - grafana.example.com
+          - www.observabilitystack.run.place
 
 prometheus:
   prometheusSpec:
@@ -48,31 +46,47 @@ prometheus:
           resources:
             requests:
               storage: 20Gi
-    # Secure TLS config for Prometheus web UI
-    tlsConfig:
-      - caFile: /etc/prometheus/secrets/prometheus-tls/ca.crt
-        certFile: /etc/prometheus/secrets/prometheus-tls/tls.crt
-        keyFile: /etc/prometheus/secrets/prometheus-tls/tls.key
-    # External VM scrape targets
+
+    # Native HTTPS for Prometheus web UI + mTLS optional
+    web:
+      tlsConfig:
+        keySecret:
+          name: prometheus-tls
+          key: tls.key
+        cert:
+          name: prometheus-tls
+          key: tls.crt
+        # To enforce client certs to the web UI, uncomment the next two lines:
+        # clientAuthType: RequireAndVerifyClientCert
+        # clientCA:
+        #   name: prometheus-ca
+        #   key: ca.crt
+
+    # External VM scrape over HTTPS
     additionalScrapeConfigs:
       - job_name: 'external-vms'
         scheme: https
         tls_config:
+          ca_file: /etc/prometheus/secrets/ca.crt
           insecure_skip_verify: false
+          # If you have a client cert/key for mTLS to exporters, uncomment:
+          # cert_file: /etc/prometheus/secrets/client.crt
+          # key_file: /etc/prometheus/secrets/client.key
         static_configs:
           - targets:
               - 'vm1.example.com:9100'
               - 'vm2.example.com:9100'
 
+  # Ingress to expose Prometheus via NGINX (TLS at ingress + native HTTPS behind)
   ingress:
     enabled: true
     ingressClassName: nginx
     hosts:
-      - prometheus.example.com
+      - prometheus.observabilitystack.run.place
     tls:
       - secretName: prometheus-tls
         hosts:
-          - prometheus.example.com
+          - prometheus.observabilitystack.run.place
 
 alertmanager:
   enabled: true
@@ -85,10 +99,32 @@ alertmanager:
       limits:
         cpu: 1
         memory: 1Gi
-    tlsConfig:
-      - caFile: /etc/alertmanager/secrets/alertmanager-tls/ca.crt
-        certFile: /etc/alertmanager/secrets/alertmanager-tls/tls.crt
-        keyFile: /etc/alertmanager/secrets/alertmanager-tls/tls.key
+
+    # Native HTTPS for Alertmanager web UI + mTLS optional
+    web:
+      tlsConfig:
+        keySecret:
+          name: alertmanager-tls
+          key: tls.key
+        cert:
+          name: alertmanager-tls
+          key: tls.crt
+        # To enforce client certs to the web UI, uncomment:
+        # clientAuthType: RequireAndVerifyClientCert
+        # clientCA:
+        #   name: alertmanager-ca
+        #   key: ca.crt
+
+  # Ingress to expose Alertmanager via NGINX
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    hosts:
+      - alertmanager.observabilitystack.run.place
+    tls:
+      - secretName: alertmanager-tls
+        hosts:
+          - alertmanager.observabilitystack.run.place
 
 defaultRules:
   create: true
