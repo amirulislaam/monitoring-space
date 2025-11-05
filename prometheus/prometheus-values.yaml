@@ -22,11 +22,11 @@ grafana:
     enabled: true
     ingressClassName: nginx
     hosts:
-      - www.observabilitystack.run.place
+      - observabilitystack.run.place
     tls:
       - secretName: grafana-tls
         hosts:
-          - www.observabilitystack.run.place
+          - observabilitystack.run.place
 
 prometheus:
   prometheusSpec:
@@ -70,8 +70,8 @@ prometheus:
           ca_file: /etc/prometheus/secrets/ca.crt
           insecure_skip_verify: false
           # If you have a client cert/key for mTLS to exporters, uncomment:
-          # cert_file: /etc/prometheus/secrets/client.crt
-          # key_file: /etc/prometheus/secrets/client.key
+          cert_file: /etc/prometheus/secrets/client.crt
+          key_file: /etc/prometheus/secrets/client.key
         static_configs:
           - targets:
               - 'vm1.example.com:9100'
