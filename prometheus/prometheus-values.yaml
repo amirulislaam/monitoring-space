@@ -22,11 +22,11 @@ grafana:
     enabled: true
     ingressClassName: nginx
     hosts:
-      - observabilitystack.run.place
+      - grafana.observabilitystack.run.place
     tls:
       - secretName: grafana-tls
         hosts:
-          - observabilitystack.run.place
+          - grafana.observabilitystack.run.place
 
 prometheus:
   prometheusSpec:
