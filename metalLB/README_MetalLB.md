@@ -35,7 +35,7 @@ Point your domains to `192.168.1.150`:
 
 Edit `/etc/hosts` on your client machine(s):
 
-192.168.1.150   www.observabilitystack.run.place
+192.168.1.150   grafana.observabilitystack.run.place
 192.168.1.150   prometheus.observabilitystack.run.place
 192.168.1.150   alertmanager.observabilitystack.run.place
 
@@ -47,7 +47,7 @@ Or, better, create DNS A records for those hostnames pointing to `192.168.1.150`
    kubectl get ingress -n server-monitoring
    You should see hosts and TLS secrets.
 2. Test with curl:
-   curl -vk https://www.observabilitystack.run.place
+   curl -vk https://grafana.observabilitystack.run.place
    curl -vk https://prometheus.observabilitystack.run.place
    curl -vk https://alertmanager.observabilitystack.run.place
 3. Open in browser — you should see Grafana, Prometheus, and Alertmanager UIs with your CA‑signed cert.
